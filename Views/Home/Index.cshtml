@@ -1,0 +1,78 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p><a href="#" data-toggle="modal" data-url='@Url.Action("Create", "Game")'>Create</a> a new game</p>
+    <p>or</p>
+    <p><a href="#" data-toggle="modal" data-url='@Url.Action("Join", "Game")'>Join</a> an existing game</p>
+</div>
+
+<div id="modal-placeholder"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        (function($){
+            $(document).ready(function(){
+                var user = getCookieObj("user");
+                if (user != null) {
+                    var gameId = user["gameId"];
+                    if (gameId != null) {
+                        window.location = `/game/start/${gameId}`;
+                    }
+                }
+
+                var $modalPlaceholder = $('#modal-placeholder');
+
+                $modalPlaceholder.on('show.bs.modal', function(e){ 
+                    var $joinGameModal = $modalPlaceholder.find('#joingame-modal');
+                    if (!$joinGameModal.length) {
+                        return;
+                    }
+                    var $gameTitle = $modalPlaceholder.find('#gameTitle');
+                    var $gameId = $modalPlaceholder.find('#gameId');
+                    var $username = $modalPlaceholder.find('#Username');
+                    var $form = $modalPlaceholder.find('form');
+                    var url = $gameTitle.data('url');
+                    var gameId;
+
+                    $gameTitle.autocomplete({
+                        minLength: 2,
+                        source: url,
+                        focus: function(event, ui) {
+                            $gameTitle.val(ui.item.gameTitle);
+                            return false;
+                        },
+                        select: function(event, ui) {
+                            event.preventDefault();
+                            $gameTitle.val(ui.item.gameTitle);
+                            $gameId.val(ui.item.gameId);
+                            return false;
+                        },
+                        close: function() {
+                            $(this).blur();
+                        }
+                    }).autocomplete("instance")._renderItem = function(ul, item) {
+                        return $("<li>")
+                            .append(`<div>${item.gameTitle}</div>`)
+                            .appendTo(ul);
+                    };
+
+                    $gameTitle.blur(function(e){
+                        if ($.trim($gameTitle.val()) == '') {
+                            $gameId.val(0);
+                        }
+                        gameId = $gameId.val();
+                        $form.validate().element($gameId);
+                    });
+
+                    $username.keyup(function(e){
+                        e.preventDefault();
+                        $form.validate().element($username);
+                    });
+                });
+            });
+        })(jQuery);
+    </script>
+}

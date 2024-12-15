@@ -1,0 +1,75 @@
+@model GameViewModel
+
+@{
+    ViewData["Title"] = "Game";
+}
+
+@for(var a = -1; a < Model.Categories[0].Answers.Count(); a++)
+{
+    <div class='row @(a == -1 ? "text-white" : "")'>
+        @for(var c = 0; c < Model.Categories.Count(); c++) {
+            <div class='col bg-primary border border-white rounded text-center d-flex align-items-center justify-content-center'>
+                <div class='@(a == -1 ? "h3 py-2" : "h2 py-5") d-inline-block'>
+                    @if (a == -1) {
+                        @Model.Categories[c].CategoryTitle
+                    } else {
+                        @if (Model.Categories[c].Answers[a].HasBeenRead == true) {
+                            <span class="text-primary">
+                                @($"${Model.Categories[c].Answers[a].AnswerValue}")    
+                            </span>
+                        } else {
+                            <a href="#" class="text-warning" data-url='@Url.Action("Index", "Answer", new {id = Model.Categories[c].Answers[a].AnswerId})' data-toggle="modal" data-answerid="@(Model.Categories[c].Answers[a].AnswerId)">
+                                @($"${Model.Categories[c].Answers[a].AnswerValue}")
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div id="modal-placeholder"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        (function($){
+            $(document).ready(function(){
+                var connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/userhub')
+                    .build();
+
+                var $modalPlaceholder = $('#modal-placeholder');
+                $modalPlaceholder.on('show.bs.modal', function(e){
+                    var answerId = $modalPlaceholder.find('div[data-answerid]').data('answerid');
+                    var $answerLink = $(`a[data-answerid="${answerId}"]`);
+                    var answerUrl = $modalPlaceholder.find('div[data-answerid]').data('url');
+                    var $responseBtn = $modalPlaceholder.find('[data-action="response"]');
+                    var $answerText = $modalPlaceholder.find('#answerText');
+                    var $questionText = $modalPlaceholder.find('#questionText');
+
+                    $responseBtn.click(function(e){
+                        console.log('response button click');
+                        if ($answerText.hasClass('hidden')) {
+                            $answerText.removeClass('hidden');
+                            $questionText.addClass('hidden');
+                        } else {
+                            $answerText.addClass('hidden');
+                            $questionText.removeClass('hidden');
+                        }
+                    });
+
+                    $modalPlaceholder.on('hide.bs.modal', function (e) {
+                        $.post(answerUrl).done(function(response){
+                            $answerLink.removeClass('text-warning');
+                            $answerLink.addClass('text-primary');
+                            $answerLink.removeAttr('href');
+                        });
+                    });
+                });
+
+                
+            });
+        })(jQuery);
+    </script>
+}

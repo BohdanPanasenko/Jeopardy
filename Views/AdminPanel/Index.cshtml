@@ -1,0 +1,11 @@
+﻿@{
+    ViewBag.Title = "Admin Panel";
+}
+
+<div class="container mt-5">
+    <h2>Welcome to admin panel</h2>
+    <ul class="list-group mt-4">
+        <li class="list-group-item"><a href="@Url.Action("UsersList")">List of all users</a></li>
+        <li class="list-group-item"><a href="@Url.Action("GamesList")">List of all games</a></li>
+    </ul>
+</div>

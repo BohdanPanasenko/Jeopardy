@@ -1,0 +1,43 @@
+@model GameViewModel
+
+<h2 class="text-center">@Model.GameTitle</h2>
+<h3 class="text-center">@Model.GameDescription</h3>
+
+<div class="row" id="usersList"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        (function($){
+            $(document).ready(function(e){
+                var $usersList = $('#usersList');
+
+                var connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/userhub')
+                    .build();
+
+                connection.on('refreshUsersList', function(users){
+                    $usersList.find('[data-userid]').remove();
+                    $.map(users, function(user){
+                        var $user = $usersList.find(`[data-userid="${user["userId"]}"]`);
+                        if (!$user.length > 0) {
+                            console.log(user);
+                            $usersList.append(`<div class="col-xs-2 ${user["isHost"] == true ? "bg-success" : "bg-primary"} text-white p-5 border border-white rounded" data-userid="${user["userId"]}"><h3 class="text-center">${user["userName"]}</h3></div>`);
+                        }
+                    });
+                });
+
+                connection.start()
+                    .then(function(){
+                        var user = getCookieObj('user');
+                        console.log(user);
+                        var userId = user["userId"];
+                        if (userId != '') {
+                            connection.invoke('UserJoined', userId);
+                        }
+                    }).catch(error => {
+                        console.error(error.message);
+                    });
+            });
+        }(jQuery))
+    </script>
+}
